@@ -13,6 +13,7 @@ import Main from 'pages/Root';
 import Register from 'pages/Root/Register';
 import Test from 'pages/Root/test';
 import DriveMain from 'pages/Drive'
+import ClipboardFC from 'pages/Clipboard';
 import AlertFC from 'components/Alert';
 
 const selector = ({
@@ -49,6 +50,7 @@ const App: React.FC = () => {
               <Route path='/drive' exact component={DriveMain} />
               <Route path='/drive/*' exact component={DriveMain} />
               <Route path='/test' exact component={Test} />
+              <Route path='/clipboard' exact component={ClipboardFC} />
               <Redirect to='/' />
             </Switch>
           ) : (

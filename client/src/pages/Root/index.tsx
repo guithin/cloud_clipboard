@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from 'store/types';
 import { Link, List, ListItem, Paper, Typography, Grid, Button } from '@material-ui/core';
-import { Storage, Warning } from '@material-ui/icons';
+import { Storage, Warning, Cloud } from '@material-ui/icons';
 import {
   makeStyles,
   Theme
@@ -54,6 +54,10 @@ const serviceItems = [{
     link: '/drive',
     linkpath: [':username'],
     icon: <Storage />
+  }, {
+    name: 'clipboard',
+    link: '/clipboard',
+    icon: <Cloud />
   }, {
     name: 'test',
     link: '/test',
