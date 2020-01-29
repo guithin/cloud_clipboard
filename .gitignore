@@ -1,0 +1,9 @@
+node_modules
+.vscode
+/daemon
+MainDir
+package-lock.json
+client/package-lock.json
+config.js
+client/build
+tempUploadDir
