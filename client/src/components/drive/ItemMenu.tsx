@@ -82,12 +82,16 @@ const ItemMenu: React.FC = () => {
     )
   }, [setState]);
 
-  const downloadElement = useCallback((item: ExplorerItem) => {
+  const downloadElement = useCallback((items: ExplorerItem[]) => {
+    let search = window.location.search;
+    if (items.length > 1) {
+      search += `&items=${JSON.stringify(items.map(i => i.name))}`;
+    }
     return (
       <Link
         to={{
-          pathname: getDownloadLink(item.name),
-          search: window.location.search
+          pathname: getDownloadLink(items.length > 1 ? '' : items[0].name),
+          search
         }}
         target='_blank'
         style={{
@@ -148,6 +152,7 @@ const ItemMenu: React.FC = () => {
     if (items.length > 1) {
       // 공유, 이동, 다운로드, 삭제
       ret.push(deleteElement(items));
+      ret.push(downloadElement(items));
     }
     else if (items[0].name === '.' || items[0].name === '..') {
       // 새폴더, 파일 업로드, 폴더 업로드
@@ -158,14 +163,14 @@ const ItemMenu: React.FC = () => {
       ret.push(detailElement(items[0]));
       ret.push(renameElement());
       ret.push(deleteElement(items));
-      ret.push(downloadElement(items[0]));
+      ret.push(downloadElement(items));
     }
     else {
       // 공유, 이름바꾸기, 이동, 세부정부, 복사, 다운로드, 삭제
       ret.push(detailElement(items[0]));
       ret.push(renameElement());
       ret.push(deleteElement(items));
-      ret.push(downloadElement(items[0]));
+      ret.push(downloadElement(items));
     }
     return ret;
   }, [
