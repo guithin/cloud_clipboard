@@ -3,6 +3,16 @@ import { makeStyles } from '@material-ui/core/styles';
 import path from 'path';
 import { List, Theme, ListItem, Typography} from '@material-ui/core';
 import { Link } from 'react-router-dom';
+import { RootState } from 'store/types';
+import { useSelector } from 'react-redux';
+
+const selector = ({
+  explorerCont: {
+    main
+  }
+}: RootState) => ({
+  main
+});
 
 const useStyles = makeStyles((theme: Theme) => ({
   pathView: {
@@ -17,14 +27,15 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-const ExplorerPath: React.FC<{ rootPath: string, nowPath: string }> = ({ rootPath, nowPath }) => {
+const ExplorerPath: React.FC = () => {
 
   const classes = useStyles();
+  const { main } = useSelector(selector);
 
   const getViewPath = () => {
+    if (!main) return [];
     let tempPath = '/drive';
-
-    return path.relative(path.join('/drive', rootPath, '..'), nowPath)
+    return path.relative(path.join(main.rootPath, '..'), main.nowPath)
       .split('/')
       .map(pathP => {
         const part = decodeURIComponent(pathP);

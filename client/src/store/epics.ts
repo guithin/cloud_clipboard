@@ -1,9 +1,9 @@
 import { combineEpics } from 'redux-observable';
 import userEpic from './user/epics';
-import explorerEpic from './explorer/epics';
+import explorerComEpic from './explorer/comm/epics';
 
 const epics = [
-  userEpic, explorerEpic
+  userEpic, explorerComEpic
 ];
 
 const rootEpic = combineEpics(...epics);

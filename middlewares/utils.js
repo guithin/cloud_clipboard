@@ -5,6 +5,11 @@ const multiPartForm = (req, res, next) => {
   const form = new multiparty.Form({
     uploadDir: config.driveTempDir
   });
+  form.on('progress', (a, b) => {
+    process.stdout.write('\r' + (a/b*100).toFixed(2) + '%');
+  })
+  form.on('error', err => console.log(err))
+  form.on('close', () => console.log('close'))
   form.parse(req, (err, field, files) => {
     if (err) {
       console.log(err);

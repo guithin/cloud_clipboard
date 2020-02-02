@@ -1,74 +1,19 @@
-import { Dispatch, SetStateAction } from "react";
-import { ExplorerItem, ItemSelect, ExplorerState, ExStatus, ExConn, backFile } from "./types";
 import path from 'path';
-import { serverHost, hrefFunc } from "store/utils";
-import actions from "./actions";
-import layoutActions from 'store/layout/actions';
+import { serverHost, hrefFunc } from 'store/utils';
+import { ExplorerState } from './content/types';
+import { Dispatch } from 'react';
 import H from 'history';
-import React from "react";
+import contActions from './content/actions';
+import commActions from './comm/actions';
+import layoutActions from 'store/layout/actions';
 
-export const clearSltState = (state: ItemSelect, forceUpdate: Function) => {
-  if (state.lst.size) {
-    state.lst.clear();
-    forceUpdate();
-  }
-}
-
-const setSltState_Ctrl = (state: ItemSelect, item: ExplorerItem): ItemSelect => {
-  if (state.lst.has(item.name)) {
-    state.lst.delete(item.name);
-    if (state.lastItem && state.lastItem.name === item.name) {
-      state.lastItem = null;
-    }
-  }
-  else {
-    state.lst.set(item.name, item);
-    state.lastItem = item;
-  }
-  return state;
-}
-
-const setSltState_Shift = (state: ItemSelect, item: ExplorerItem, items: ExplorerItem[]): ItemSelect => {
-  if (state.lst.has(item.name) || state.lastItem === null) {
-    return state;
-  }
-  let toggle: boolean = false;
-  for (let i of items) {
-    if (toggle) {
-      state.lst.set(i.name, i);
-    }
-    if (state.lastItem.name === i.name || item.name === i.name) {
-      toggle = !toggle;
-      state.lst.set(i.name, i);
-    }
-  }
-  state.lastItem = item;
-  return state;
-}
-
-export const setSltState = (type: 'ctrl' | 'shift' | 'click', state: ItemSelect, item: ExplorerItem, items: ExplorerItem[] = []): ItemSelect  => {
-  if (type === 'ctrl') {
-    return setSltState_Ctrl(state, item);
-  }
-  else if (type === 'shift') {
-    return setSltState_Shift(state, item, items);
-  }
-  else {
-    state.lst.clear();
-    state.lst.set(item.name, item);
-    state.lastItem = item;
-  }
-  return state;
-}
-
-export const convertPath = (realPath: string): string => path.join('/', ...realPath.split('/').filter(p => p.length > 0 && p !== 'drive'));
-export const getLink = (item: string): string => path.join(window.location.pathname, item);
-export const getDownloadLink = (item: string): string => serverHost + path.join('/api/drive/download', convertPath(getLink(item)));
+// util functions
 export const getDateString = (date: string): string => {
   if (!date) return '';
   const dd = new Date(date);
   return `${dd.getFullYear()}. ${dd.getMonth() + 1}. ${dd.getDate()}.`;
 }
+
 export const getSizeString = (size: number): string => {
   const lst = ['B', 'KB', 'MB', 'GB', 'TB'];
   let idx = 0;
@@ -76,136 +21,68 @@ export const getSizeString = (size: number): string => {
     size /= 1024;
     idx++;
   }
-  return String(size.toFixed(0)) + lst[idx];
+  return String(size.toFixed(2)) + lst[idx];
 }
 
+export const refContain = (refA: React.RefObject<HTMLInputElement> | null, refB: HTMLInputElement) => {
+  return refA && refA.current && refA.current.contains(refB);
+};
+
+export const addressFormat = (clientAddress: string): string => {
+  return path.join('/', ...clientAddress.split(path.sep).filter(i => i.length > 0 && i !== 'drive'));
+}
+
+export const convertPath = (realPath: string): string => path.join('/', ...realPath.split('/').filter(p => p.length > 0 && p !== 'drive'));
+export const getLink = (item: string): string => path.join(window.location.pathname, item);
+export const getDownloadLink = (item: string): string => serverHost + path.join('/api/drive/download', convertPath(getLink(item)));
+
+// explorer control functions
 export type StateFuncParam = {
-  state: ExplorerState,
-  setState: Dispatch<SetStateAction<ExplorerState>>
+  main: ExplorerState,
   dispatch: Dispatch<any>,
-  explorerConn: ExConn,
   username: string,
   history: H.History<any>,
-  sltItem: ItemSelect
 }
 
-const doneFunc = ({ state, setState, dispatch, explorerConn }: StateFuncParam) => {
-  if (path.relative(state.nowPath, window.location.pathname)) {
-    setState({
-      ...state,
-      status: ExStatus.EX_LOADING,
-      nowPath: window.location.pathname
-    });
-    dispatch(actions.getExplorerItems.request({
-      path: convertPath(window.location.pathname),
-      token: state.token || ''
-    }));
-  }
-  let refresh = false;
-  for (let i in explorerConn.upload) {
-    const now = explorerConn.upload[i];
-    if (!now.result) continue;
-    if (now.status === 'success') {
-      if (path.relative(now.result.filepath, convertPath(state.nowPath)) === '') refresh = true;
-      dispatch(actions.doneUPQuery(i));
-    }
-  }
-  for (let i in explorerConn.edit) {
-    const now = explorerConn.edit[i];
-    if (!now.result) continue;
-    if (now.status === 'success') {
-      if (path.relative(now.result.path, convertPath(state.nowPath)) === '') refresh = true;
-      dispatch(actions.deleteEdQuery(i));
-    }
-  }
-  if (refresh) {
-    setState({
-      ...state,
-      status: ExStatus.EX_LOADING
-    });
-    dispatch(actions.getExplorerItems.request({
-      path: convertPath(state.nowPath),
-      token: state.token || ''
-    }));
-  }
-}
-
-const beginFunc = ({ state, setState }: StateFuncParam) => {
+const beginFunc = ({ dispatch }: StateFuncParam) => {
   const query = new URLSearchParams(window.location.search);
   const token = query.get('token');
   if (token) {
-    setState({
-      ...state,
-      token: token || '',
-      status: ExStatus.EX_SET_TOKEN
-    });
+    dispatch(contActions.setToken({
+      tagName: 'main',
+      token
+    }));
   }
-  else {
-    setState({
-      ...state,
-      status: ExStatus.EX_DONE
-    });
+  const locatePath = convertPath(window.location.pathname);
+  dispatch(commActions.readdirRequest.request({
+    tagName: 'main',
+    token: token || '',
+    path: locatePath
+  }))
+}
+
+const doneFunc = ({ main, dispatch }: StateFuncParam) => {
+  const locatePath = convertPath(window.location.pathname);
+  if (path.relative(main.nowPath, locatePath)) {
+    dispatch(commActions.readdirRequest.request({
+      tagName: 'main',
+      token: main.token,
+      path: locatePath
+    }))
   }
 }
 
-const setTokenFunc = ({ state, setState }: StateFuncParam) => {
-  if (state.token) {
-    setState({
-      ...state,
-      status: ExStatus.EX_DONE
-    });
-  }
+const loadFunc = ({ dispatch }: StateFuncParam) => {
+  dispatch(contActions.itemClear());
 }
 
-const loadFunc = ({ state, setState, explorerConn, sltItem, dispatch }: StateFuncParam) => {
-  if (explorerConn.read) {
-    if (explorerConn.read.status === 'success') {
-      if (!explorerConn.read.result) return;
-      let items = explorerConn.read.result.files.map(file => {
-        file.refItem = React.createRef();
-        file.refDate = React.createRef();
-        file.refSize = React.createRef();
-        return file;
-      });
-      console.log(explorerConn.read.result.rootPath)
-      if (path.relative(path.join('/drive', explorerConn.read.result.rootPath), state.nowPath)) {
-        items.unshift(backFile());
-      }
-      sltItem.lst.clear();
-      sltItem.lastItem = null;
-      setState({
-        ...state,
-        status: ExStatus.EX_DONE,
-        rootPath: explorerConn.read.result.rootPath,
-        items,
-      });
-    }
-    else if (explorerConn.read.status === 'error') {
-      setState({
-        ...state,
-        status: ExStatus.EX_ERROR,
-        err: explorerConn.read.error || ''
-      })
-    }
-    else {
-      return;
-    }
-    dispatch(actions.deleteRDQuery());
-  }
-}
-
-const errorFunc = ({ state, setState, dispatch, username, history }: StateFuncParam) => {
+const errorFunc = ({ main, dispatch, username, history }: StateFuncParam) => {
   dispatch(layoutActions.openAlert({
     type: 'explorerConn',
-    message: state.err || ''
+    message: '디렉토리 조회에 실패했습니다.'
   }));
-  setState({
-    ...state,
-    items: [],
-    status: ExStatus.EX_DONE
-  });
-  if (state.rootPath) {
-    history.push(path.join('/drive', state.rootPath));
+  if (main.rootPath) {
+    history.push(path.join('/drive', main.rootPath));
   }
   else if (username) {
     history.push(path.join('/drive', username));
@@ -214,15 +91,10 @@ const errorFunc = ({ state, setState, dispatch, username, history }: StateFuncPa
     hrefFunc('/login');
   }
 }
-
+// 'begin' | 'done' | 'loading' | 'success' | 'error'
 export const functionMapper = {
-  [ExStatus.EX_DONE]: doneFunc,
-  [ExStatus.EX_BEGIN]: beginFunc,
-  [ExStatus.EX_LOADING]: loadFunc,
-  [ExStatus.EX_SET_TOKEN]: setTokenFunc,
-  [ExStatus.EX_ERROR]: errorFunc
+  begin: beginFunc,
+  loading: loadFunc,
+  success: doneFunc,
+  error: errorFunc
 }
-
-export const refContain = (refA: React.RefObject<HTMLInputElement> | null, refB: HTMLInputElement) => {
-  return refA && refA.current && refA.current.contains(refB);
-};

@@ -31,6 +31,7 @@ router.get('/*', userChecker(true), permissionChecker('r'), async (req, res) => 
       // archive.on('progress', data => console.log(data));
       // archive.on('progress', data => updateprogress(data, req.query.tagName));
       // res.on('close', () => closeProgress(req.query.tagName));
+      res.on('pipe', i => console.log(i))
       archive.finalize();
       return; 
     }

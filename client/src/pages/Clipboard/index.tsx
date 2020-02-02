@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Content } from 'store/clipboard/types';
-import { List, ListItem, ListItemText, Link, Typography, Dialog, AppBar, Toolbar, IconButton, Divider } from '@material-ui/core';
+import { List, ListItem, Typography, Dialog, AppBar, Toolbar, IconButton } from '@material-ui/core';
 import { Close } from '@material-ui/icons';
 import {
   createStyles, makeStyles, Theme,
 } from '@material-ui/core/styles';
-import classes from '*.module.css';
 
 const testlists: Content[] = [
   {
@@ -16,7 +15,7 @@ const testlists: Content[] = [
   {
     time: '1580271639472',
     type: 'image',
-    payload: 'http://localhost:3001/api/drive/download/won0114/사원증사진_정사각.jpg'
+    payload: 'http://localhost:3001/api/drive/download/won0114/사원증사진_직사각.jpg'
   }
 ];
 
@@ -51,7 +50,7 @@ const Clipboard: React.FC = () => {
                 {item.payload}
               </Typography>
             ) : item.type === 'image' ? (
-              <img src={item.payload} width='300px' onClick={() => setState({ type: 'image', payload: item.payload})}/>
+              <img src={item.payload} width='100px' onClick={() => setState({ type: 'image', payload: item.payload})} alt='alert'/>
             ): (
               <div>asdf</div>
             )}
@@ -70,7 +69,9 @@ const Clipboard: React.FC = () => {
           </Toolbar>
         </AppBar>
         <div className={classes.toolbar} />
-        <img src={state.payload} width='500px'/>
+        <div style={{ justifyContent: 'center', display: 'flex', width: '100%'}}>
+          <img src={state.payload} width='500px' alt='alert'/>
+        </div>
       </Dialog>
     </div>
   )

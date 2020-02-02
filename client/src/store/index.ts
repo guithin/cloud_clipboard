@@ -1,6 +1,6 @@
 import { Store, createStore, compose, applyMiddleware } from 'redux';
 import { createEpicMiddleware } from 'redux-observable';
-import { Persistor, persistReducer, persistStore } from 'redux-persist';
+import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import {
   createLogger,
@@ -30,17 +30,26 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const epicMiddleware = createEpicMiddleware<RootAction, RootAction, RootState>();
 const loggerMiddleware = createLogger();
 
-export default (): [Store<RootState>, Persistor] => {
-  let middlewares: any[] = [epicMiddleware];
+let middlewares: any[] = [epicMiddleware];
+middlewares.push(loggerMiddleware);
+export const store = createStore(
+  pReducer,
+  composeEnhancers(applyMiddleware(...middlewares)),
+);
+epicMiddleware.run(rootEpic);
+export const persistor = persistStore(store, undefined, persistHandler(store));
 
-  middlewares.push(loggerMiddleware);
+// export default (): [Store<RootState>, Persistor] => {
+//   let middlewares: any[] = [epicMiddleware];
 
-  const store = createStore(
-    pReducer,
-    composeEnhancers(applyMiddleware(...middlewares)),
-  );
+//   middlewares.push(loggerMiddleware);
 
-  epicMiddleware.run(rootEpic);
+//   const store = createStore(
+//     pReducer,
+//     composeEnhancers(applyMiddleware(...middlewares)),
+//   );
 
-  return [store, persistStore(store, undefined, persistHandler(store))];
-}
+//   epicMiddleware.run(rootEpic);
+
+//   return [store, persistStore(store, undefined, persistHandler(store))];
+// }
