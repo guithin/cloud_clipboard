@@ -3,7 +3,7 @@ import { TableRow, TableCell, Grid, Typography, Tooltip } from '@material-ui/cor
 import { InsertDriveFile, Folder } from '@material-ui/icons';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
-import { ExplorerItem, nowFolder } from 'store/explorer/content/types';
+import { ExplorerItem, SltOpts } from 'store/explorer/content/types';
 import { useDispatch, useSelector } from 'react-redux';
 import actions from 'store/explorer/content/actions';
 import { RootState } from 'store/types';
@@ -17,9 +17,13 @@ import {
 } from 'store/explorer/functions';
 
 const selector = ({
-  sltState
+  sltState,
+  explorerCont: {
+    main
+  }
 }: RootState) => ({
-  sltState
+  sltState,
+  main
 });
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -42,14 +46,27 @@ const ItemFC: React.FC<{
   const history = useHistory();
   const dispatch = useDispatch();
 
-  const { sltState } = useSelector(selector);
+  const { sltState, main } = useSelector(selector);
 
   const handleRightClick = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    const clickedItem = refContain(itemRef, e.target) ? item : nowFolder;
-    console.log(clickedItem);
-  }, [item]);
+    if (refContain(itemRef, e.target)) {
+      if (!sltState.lst[item.name]) {
+        dispatch(actions.itemSelect({
+          mode: 'click',
+          items: [item]
+        }))
+      }
+    }
+    else {
+      dispatch(actions.itemClear());
+    }
+    dispatch(actions.menuOpen({
+      posX: e.pageX,
+      posY: e.pageY
+    }))
+  }, [sltState, item, dispatch]);
 
   const handleDoubleClick = useCallback((e) => {
     if (item.isFile) {
@@ -64,11 +81,31 @@ const ItemFC: React.FC<{
   }, [item, history]);
 
   const handleClick = useCallback((e) => {
+    const items = [] as ExplorerItem[];
+    let mode: SltOpts["mode"] = 'click';
+    if (e.shiftKey) {
+      if (!sltState.lastItem) return;
+      let toggle = false;
+      for (let i of main.items) {
+        if (i.name === item.name || i.name === sltState.lastItem.name) {
+          toggle = !toggle;
+          items.push(i);
+        }
+        if (toggle) {
+          items.push(i);
+        }
+      }
+      mode = 'shift';
+    }
+    else {
+      items.push(item);
+      if (e.ctrlKey) mode = 'ctrl';
+    }
     dispatch(actions.itemSelect({
-      items: [item],
-      mode: 'one'
+      items,
+      mode
     }));
-  }, [dispatch, item]);
+  }, [dispatch, item, main, sltState]);
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
@@ -82,7 +119,7 @@ const ItemFC: React.FC<{
       }
       if (Object.keys(sltState.lst).length !== 1 || !sltState.lst[item.name]) {
         dispatch(actions.itemSelect({
-          mode: 'one',
+          mode: 'click',
           type: 'drag',
           items: [item],
         }));
@@ -91,15 +128,11 @@ const ItemFC: React.FC<{
   }, [dispatch, item, sltState]);
 
   const colorState = useCallback((): string => {
-    if (sltState.lst[item.name]) {
-      if (sltState.lastItem && sltState.lastItem.name === item.name) {
-        return '#d8d8d8';
-      }
-      else {
-        return '#eee';
-      }
-    }
-    return '#fff';
+    return sltState.lst[item.name] ? '#cce8ff' : '#fff'
+  }, [sltState, item]);
+
+  const isLast = useCallback(() => {
+    return sltState.lastItem && sltState.lastItem.name === item.name;
   }, [sltState, item]);
 
   useEffect(() => {
@@ -127,7 +160,7 @@ const ItemFC: React.FC<{
           </Grid>
           <Grid item>
             <Tooltip title={item.name} placement='bottom-start' enterDelay={500}>
-              <Typography noWrap={true} className={classes.typoText}>{item.name}</Typography>
+              <Typography noWrap={true} className={classes.typoText} style={{ color: isLast() ? '#0000ff' : '#000' }}>{item.name}</Typography>
             </Tooltip>
           </Grid>
         </Grid>

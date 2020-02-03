@@ -77,8 +77,8 @@ export const sltInit: SltState = {
 
 export interface SltOpts {
   items: ExplorerItem[],
-  mode: 'one' | 'all',
-  type?: 'none' | 'drag'
+  mode: 'click' | 'ctrl' | 'shift',
+  type?: 'none' | 'drag',
   click?: ExplorerItem,
 }
 

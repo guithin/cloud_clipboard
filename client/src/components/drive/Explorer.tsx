@@ -3,12 +3,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from 'store/types';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { TableContainer, Table, TableHead, TableRow, TableBody, TableCell } from '@material-ui/core';
-import { functionMapper } from 'store/explorer/functions';
+import { functionMapper, refContain } from 'store/explorer/functions';
+import crypto from 'crypto';
 import Loading from 'components/Loading';
 import ItemFC from './ExplorerItem';
 import ExplorerPath from './ExploterPath';
 import { useHistory } from 'react-router-dom';
-import actions from 'store/explorer/content/actions';
+import contActions from 'store/explorer/content/actions';
+import commActions from 'store/explorer/comm/actions';
 
 const selector = ({
   explorerCont: { main },
@@ -31,6 +33,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const Explorer: React.FC = () => {
   const cellsRef = useRef<HTMLInputElement>(null);
+  const tableRef = useRef<HTMLInputElement>(null);
 
   const dispatch = useDispatch();
   const history = useHistory();
@@ -51,15 +54,46 @@ const Explorer: React.FC = () => {
 
   const handleClickOutside = useCallback((e) => {
     if (cellsRef.current && !cellsRef.current.contains(e.target)) {
-      dispatch(actions.itemClear());
+      if (e.type === 'contextmenu' && refContain(tableRef, e.target)) return;
+      dispatch(contActions.itemClear());
     }
   }, [dispatch]);
 
-  const handleDrageOver = useCallback((e) => {
+  const handleRClick = useCallback((e) => {
+    e.preventDefault();
+    if (refContain(cellsRef, e.target)) return;
+    dispatch(contActions.itemClear());
+    dispatch(contActions.menuOpen({
+      posX: e.pageX,
+      posY: e.pageY
+    }))
+  }, [dispatch]);
+
+  const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     if (cellsRef.current && !cellsRef.current.contains(e.target) && Object.keys(sltState.lst).length > 0) {
-      dispatch(actions.itemClear());
+      dispatch(contActions.itemClear());
+    }
+  }, [dispatch, sltState]);
+
+  const handleDragDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (refContain(tableRef, e.target)) {
+      let path = main && main.nowPath;
+      if (sltState.type === 'drag') {
+        const temp = sltState.lst[Object.keys(sltState.lst)[0]].name;
+        path += temp;
+      }
+      let files: File[] = [];
+      for (let i of e.dataTransfer.files) files.push(i);
+      dispatch(commActions.uploadRequest.request({
+        path,
+        files,
+        token: (main && main.token) || '',
+        tagName: crypto.createHash('sha256').update(path +new Date().getTime().toString()).digest('base64')
+      }))
     }
   }, [dispatch, sltState]);
 
@@ -69,11 +103,15 @@ const Explorer: React.FC = () => {
     checkTableSize();
     window.addEventListener('resize', checkTableSize);
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('dragover', handleDrageOver);
+    document.addEventListener('dragover', handleDragOver);
+    document.addEventListener('drop', handleDragDrop);
+    document.addEventListener('selectstart', (e) => { e.preventDefault(); });
     return () => {
       window.removeEventListener('resize', checkTableSize);
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('dragover', handleDrageOver);
+      document.removeEventListener('dragover', handleDragOver);
+      document.removeEventListener('drop', handleDragDrop);
+      document.removeEventListener('selectstart', (e) => { e.preventDefault(); });
     }
   }, [
     main,
@@ -83,7 +121,7 @@ const Explorer: React.FC = () => {
     checkTableSize,
     history.location,
     handleClickOutside,
-    handleDrageOver
+    handleDragOver
   ]);
 
   return (
@@ -98,6 +136,8 @@ const Explorer: React.FC = () => {
               height: tableSize.height,
               width: tableSize.width
             }}
+            onContextMenu={handleRClick}
+            ref={tableRef}
           >
             <Table stickyHeader size='small'>
               <TableHead>

@@ -63,13 +63,12 @@ export const menuState = createReducer<MenuState>(menuInitState)
 export const sltState = createReducer<SltState>(sltInit)
   .handleAction(actions.itemSelect, (state, { payload }) => {
     let mode = payload.mode;
-    let lastItem = payload.click || (payload.items.length === 1 && payload.items[0]) || undefined;
     const type = payload.type || 'none';
     if (type === 'drag') {
-      mode = 'one';
+      mode = 'click';
     }
     switch (mode) {
-      case 'one':
+      case 'click':
       {
         const nowItem = payload.items[0];
         return {
@@ -81,13 +80,27 @@ export const sltState = createReducer<SltState>(sltInit)
           }
         }
       }
-      case 'all':
+      case 'ctrl':
       {
+        const item = payload.items[0];
+        if (!item) return state;
         let newState = {
           ...state,
+          lst: { ...state.lst },
+          type,
+        }
+        newState.lastItem = item;
+        if (newState.lst[item.name]) delete newState.lst[item.name];
+        else newState.lst[item.name] = item;
+        return newState;
+      }
+      case 'shift':
+      {
+        let newState: SltState = {
+          ...state,
+          lst: {},
           type,
         };
-        newState.lastItem = lastItem;
         payload.items.map(i => newState.lst[i.name] = i);
         return newState;
       }

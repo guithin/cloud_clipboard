@@ -26,7 +26,6 @@ router.post('/*', multiPartForm, userChecker(true), permissionChecker('w'), (req
     success: true,
     filepath: req.path,
     filename: filenames,
-    timeTag: req.body.formDatas.timeTag[0]
   });
 });
 
