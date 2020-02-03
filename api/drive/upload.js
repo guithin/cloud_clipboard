@@ -9,13 +9,11 @@ const { dirnameValidation } = require('./utils');
 
 router.post('/*', multiPartForm, userChecker(true), permissionChecker('w'), (req, res) => {
   const reqPath = path.join(drivePath, decodeURIComponent(req.path));
-  let filenames = [];
   for (let i in req.body.formFiles) {
     try {
       const item = req.body.formFiles[i][0];
       if (!dirnameValidation(item.originalFilename)) continue;
       fs.renameSync(item.path, path.join(reqPath, item.originalFilename));
-      filenames.push(item.originalFilename);
     }
     catch (err) {
       console.log(err);
@@ -23,9 +21,7 @@ router.post('/*', multiPartForm, userChecker(true), permissionChecker('w'), (req
     }
   }
   return res.send({
-    success: true,
     filepath: req.path,
-    filename: filenames,
   });
 });
 

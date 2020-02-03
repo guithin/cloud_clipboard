@@ -5,6 +5,7 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { TableContainer, Table, TableHead, TableRow, TableBody, TableCell } from '@material-ui/core';
 import { functionMapper, refContain } from 'store/explorer/functions';
 import crypto from 'crypto';
+import path from 'path';
 import Loading from 'components/Loading';
 import ItemFC from './ExplorerItem';
 import ExplorerPath from './ExploterPath';
@@ -13,11 +14,12 @@ import contActions from 'store/explorer/content/actions';
 import commActions from 'store/explorer/comm/actions';
 
 const selector = ({
+  explorerCom: { upload },
   explorerCont: { main },
   user: { username },
   sltState,
 }: RootState) => ({
-  main, username, sltState
+  upload, main, username, sltState
 });
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -38,7 +40,7 @@ const Explorer: React.FC = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const classes = useStyles();
-  const { main, username, sltState } = useSelector(selector);
+  const { upload, main, username, sltState } = useSelector(selector);
   const [tableSize, setTableSize] = useState({ width: 0, height: 0 });
 
   const checkTableSize = useCallback(() => {
@@ -81,25 +83,25 @@ const Explorer: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     if (refContain(tableRef, e.target)) {
-      let path = main && main.nowPath;
+      let _path = main && main.nowPath;
       if (sltState.type === 'drag') {
         const temp = sltState.lst[Object.keys(sltState.lst)[0]].name;
-        path += temp;
+        _path = path.join(_path, temp);
       }
       let files: File[] = [];
       for (let i of e.dataTransfer.files) files.push(i);
       dispatch(commActions.uploadRequest.request({
-        path,
+        path: _path,
         files,
         token: (main && main.token) || '',
-        tagName: crypto.createHash('sha256').update(path +new Date().getTime().toString()).digest('base64')
+        tagName: crypto.createHash('sha256').update(_path +new Date().getTime().toString()).digest('base64')
       }))
     }
-  }, [dispatch, sltState]);
+  }, [dispatch, sltState, main]);
 
   useEffect(() => {
     const fetchFunc = functionMapper[(main && main.status) || 'begin'];
-    fetchFunc({ main, dispatch, username, history, });
+    fetchFunc({ main, dispatch, username, history, upload });
     checkTableSize();
     window.addEventListener('resize', checkTableSize);
     document.addEventListener('mousedown', handleClickOutside);
@@ -115,13 +117,15 @@ const Explorer: React.FC = () => {
     }
   }, [
     main,
+    upload,
     username,
     history,
     dispatch,
     checkTableSize,
     history.location,
     handleClickOutside,
-    handleDragOver
+    handleDragOver,
+    handleDragDrop
   ]);
 
   return (

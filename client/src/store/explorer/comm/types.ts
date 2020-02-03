@@ -25,13 +25,12 @@ export interface ReqUpload {
 }
 
 export interface ResUpload {
-  loading: number,
-  rootPath: string,
-  nowPath: string,
-  token: string,
-  items: ExplorerItem[],
-  tagName: string,
   error?: string,
+  result?: {
+    filepath: string,
+  }
+  refresh: boolean,
+  tagName: string
 }
 
 // edit (rm, mkdir, mv, cp)
@@ -53,9 +52,9 @@ export interface ResEdit {
 }
 
 // general
-interface ResReaddirMap { [key: string]: ResReaddir }
-interface ResUploadMap { [key: string]: ResUpload }
-interface ResEditMap { [key: string]: ResEdit }
+export interface ResReaddirMap { [key: string]: ResReaddir }
+export interface ResUploadMap { [key: string]: ResUpload }
+export interface ResEditMap { [key: string]: ResEdit }
 
 export interface ComState {
   read: ResReaddirMap,

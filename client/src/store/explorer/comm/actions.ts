@@ -1,4 +1,4 @@
-import { createAsyncAction } from 'typesafe-actions';
+import { createAsyncAction, createAction } from 'typesafe-actions';
 import {
   ReqReaddir,
   ResReaddir,
@@ -17,6 +17,8 @@ enum Actions {
   UPLOADS_SUCCESS = 'COM_UPLOADS#SUCCESS',
   UPLOADS_FAILURE = 'COM_UPLOADS#FAILURE',
   UPLOADS_CANCEL = 'COM_UPLOADS#CANCEL',
+
+  UPLOADS_REFRESH = 'COM_UPLOAD#REFRESH',
 
   EDITEMS_REQUEST = 'COM_EDITEMS#REQUEST',
   EDITEMS_SUCCESS = 'COM_EDITEMS#SUCCESS',
@@ -38,6 +40,8 @@ const uploadRequest = createAsyncAction(
   Actions.UPLOADS_CANCEL
 )<ReqUpload, ResUpload, void, void>();
 
+const uploadRefresh = createAction(Actions.UPLOADS_REFRESH)<string>();
+
 const editRequest = createAsyncAction(
   Actions.EDITEMS_REQUEST,
   Actions.EDITEMS_SUCCESS,
@@ -47,6 +51,7 @@ const editRequest = createAsyncAction(
 export default {
   readdirRequest,
   uploadRequest,
+  uploadRefresh,
   editRequest,
   Actions
 }

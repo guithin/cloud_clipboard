@@ -4,7 +4,7 @@ import { Epic, combineEpics } from "redux-observable";
 import { filter, mergeMap, map, catchError } from "rxjs/operators";
 import actions from "./actions";
 import { from } from "rxjs";
-import { readdirApi } from "./api";
+import { readdirApi, uploadItem } from "./api";
 
 const exComEpic: Epic<
   RootAction,
@@ -12,8 +12,8 @@ const exComEpic: Epic<
   RootState
 > = (act) => act.pipe(
   filter(isActionOf(actions.readdirRequest.request)),
-  mergeMap((act) => from(readdirApi(act.payload)).pipe(
-    map((res) => actions.readdirRequest.success({
+  mergeMap(act => from(readdirApi(act.payload)).pipe(
+    map(res => actions.readdirRequest.success({
       result: res.data,
       tagName: act.payload.tagName
     })),
@@ -21,6 +21,22 @@ const exComEpic: Epic<
   ))
 )
 
+const exComUpload: Epic<
+  RootAction,
+  ActionType<typeof actions.uploadRequest.success> | ActionType<typeof actions.uploadRequest.failure>,
+  RootState
+> = (act) => act.pipe(
+  filter(isActionOf(actions.uploadRequest.request)),
+  mergeMap(act => from(uploadItem(act.payload)).pipe(
+    map(res => actions.uploadRequest.success({
+      result: res.data,
+      tagName: act.payload.tagName,
+      refresh: false
+    })),
+    catchError(err => [actions.uploadRequest.failure()])
+  ))
+)
+
 export default combineEpics(
-  exComEpic
+  exComEpic, exComUpload
 );

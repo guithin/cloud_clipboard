@@ -6,6 +6,7 @@ import H from 'history';
 import contActions from './content/actions';
 import commActions from './comm/actions';
 import layoutActions from 'store/layout/actions';
+import { ResUploadMap } from './comm/types';
 
 // util functions
 export const getDateString = (date: string): string => {
@@ -42,6 +43,7 @@ export type StateFuncParam = {
   dispatch: Dispatch<any>,
   username: string,
   history: H.History<any>,
+  upload: ResUploadMap
 }
 
 const beginFunc = ({ dispatch }: StateFuncParam) => {
@@ -61,14 +63,33 @@ const beginFunc = ({ dispatch }: StateFuncParam) => {
   }))
 }
 
-const doneFunc = ({ main, dispatch }: StateFuncParam) => {
+const doneFunc = ({ main, dispatch, upload }: StateFuncParam) => {
   const locatePath = convertPath(window.location.pathname);
   if (path.relative(main.nowPath, locatePath)) {
     dispatch(commActions.readdirRequest.request({
       tagName: 'main',
       token: main.token,
       path: locatePath
-    }))
+    }));
+    return;
+  }
+
+  // upload refresh
+  let refresh = false;
+  for (let i in upload) {
+    if (upload[i].result && upload[i].refresh === false) {
+      if (upload[i].result?.filepath === main.nowPath) {
+        refresh = true;
+      }
+      dispatch(commActions.uploadRefresh(i));
+    }
+  }
+  if (refresh) {
+    dispatch(commActions.readdirRequest.request({
+      tagName: 'main',
+      token: main.token,
+      path: main.nowPath
+    }));
   }
 }
 
