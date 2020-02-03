@@ -34,8 +34,6 @@ export const addressFormat = (clientAddress: string): string => {
 }
 
 export const convertPath = (realPath: string): string => path.join('/', ...realPath.split('/').filter(p => p.length > 0 && p !== 'drive'));
-export const getLink = (item: string): string => path.join(window.location.pathname, item);
-export const getDownloadLink = (item: string): string => serverHost + path.join('/api/drive/download', convertPath(getLink(item)));
 
 // explorer control functions
 export type StateFuncParam = {
@@ -112,7 +110,7 @@ const errorFunc = ({ main, dispatch, username, history }: StateFuncParam) => {
     hrefFunc('/login');
   }
 }
-// 'begin' | 'done' | 'loading' | 'success' | 'error'
+// 'begin' | 'loading' | 'success' | 'error'
 export const functionMapper = {
   begin: beginFunc,
   loading: loadFunc,

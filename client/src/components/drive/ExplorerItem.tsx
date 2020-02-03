@@ -7,13 +7,12 @@ import { ExplorerItem, SltOpts } from 'store/explorer/content/types';
 import { useDispatch, useSelector } from 'react-redux';
 import actions from 'store/explorer/content/actions';
 import { RootState } from 'store/types';
-import { hrefFunc } from 'store/utils';
+import { hrefFunc, serverHost } from 'store/utils';
+import path from 'path';
 import {
   getDateString,
   getSizeString,
   refContain,
-  getDownloadLink,
-  getLink
 } from 'store/explorer/functions';
 
 const selector = ({
@@ -70,12 +69,12 @@ const ItemFC: React.FC<{
 
   const handleDoubleClick = useCallback((e) => {
     if (item.isFile) {
-      hrefFunc(getDownloadLink(item.name));
+      hrefFunc(path.join(serverHost, '/api/drive/download', main.nowPath, item.name));
     }
     else {
       history.push({
-        pathname: getLink(item.name),
-        search: window.location.search
+        pathname: path.join('drive', main.nowPath, item.name),
+        search: main.token ? '&token=' + main.token : ''
       });
     }
   }, [item, history]);
