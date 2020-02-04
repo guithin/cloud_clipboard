@@ -10,7 +10,10 @@ export const explorerCom = createReducer<ComState>({ read: {}, upload: {}, edit:
         ...state.upload,
         [payload.tagName]: {
           tagName: payload.tagName,
-          refresh: false
+          uplaodRatio: 0,
+          cancelToken: payload.cancelToken,
+          refresh: false,
+          filenames: payload.files.map(i => i.name)
         }
       }
     }
@@ -68,4 +71,26 @@ export const explorerCom = createReducer<ComState>({ read: {}, upload: {}, edit:
         }
       }
     }
+  })
+  .handleAction(comActions.onUploadProgress, (state, { payload }) => {
+    return {
+      ...state,
+      upload: {
+        ...state.upload,
+        [payload.tagName]: {
+          ...state.upload[payload.tagName],
+          uplaodRatio: payload.loaded / payload.total
+        }
+      }
+    };
+  })
+  .handleAction(comActions.deleteUploadQuery, (state, { payload }) => {
+    const newState = { ...state };
+    for (let i in state.upload) {
+      if (state.upload[i].cancelToken) {
+        state.upload[i].cancelToken.cancel();
+      }
+    }
+    newState.upload = {};
+    return newState;
   })

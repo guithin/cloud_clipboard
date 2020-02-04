@@ -13,6 +13,7 @@ import { useHistory } from 'react-router-dom';
 import contActions from 'store/explorer/content/actions';
 import commActions from 'store/explorer/comm/actions';
 import { nowFolder } from 'store/explorer/content/types';
+import Axios from 'axios';
 
 const selector = ({
   explorerCom: { upload, edit },
@@ -105,11 +106,20 @@ const Explorer: React.FC = () => {
       }
       let files: File[] = [];
       for (let i of e.dataTransfer.files) files.push(i);
+      const tagName = crypto.createHash('sha256').update(_path +new Date().getTime().toString()).digest('base64');
       dispatch(commActions.uploadRequest.request({
         path: _path,
         files,
         token: (main && main.token) || '',
-        tagName: crypto.createHash('sha256').update(_path +new Date().getTime().toString()).digest('base64')
+        tagName,
+        cancelToken: Axios.CancelToken.source(),
+        onProgress: (e) => {
+          dispatch(commActions.onUploadProgress({
+            tagName,
+            loaded: e.loaded,
+            total: e.total
+          }))
+        }
       }));
       dispatch(contActions.itemClear());
     }

@@ -17,8 +17,9 @@ enum Actions {
   UPLOADS_SUCCESS = 'COM_UPLOADS#SUCCESS',
   UPLOADS_FAILURE = 'COM_UPLOADS#FAILURE',
   UPLOADS_CANCEL = 'COM_UPLOADS#CANCEL',
-
+  UPLOADS_PROGRES = 'COM_UPLOADS#PROGRES',
   UPLOADS_REFRESH = 'COM_UPLOAD#REFRESH',
+  UPLOADS_DELETEQ = 'COM_UPLOAD#DELETEQ',
 
   EDITEMS_REQUEST = 'COM_EDITEMS#REQUEST',
   EDITEMS_SUCCESS = 'COM_EDITEMS#SUCCESS',
@@ -41,7 +42,9 @@ const uploadRequest = createAsyncAction(
   Actions.UPLOADS_CANCEL
 )<ReqUpload, ResUpload, void, void>();
 
+const onUploadProgress = createAction(Actions.UPLOADS_PROGRES)<{ tagName: string, loaded: number, total: number }>()
 const uploadRefresh = createAction(Actions.UPLOADS_REFRESH)<string>();
+const deleteUploadQuery = createAction(Actions.UPLOADS_DELETEQ)<void>();
 
 const editRequest = createAsyncAction(
   Actions.EDITEMS_REQUEST,
@@ -54,7 +57,9 @@ const editRefresh = createAction(Actions.EDITEMS_REFRESH)<string>();
 export default {
   readdirRequest,
   uploadRequest,
+  onUploadProgress,
   uploadRefresh,
+  deleteUploadQuery,
   editRequest,
   editRefresh,
   Actions

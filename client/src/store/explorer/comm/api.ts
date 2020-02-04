@@ -13,7 +13,8 @@ export const uploadItem = (info: ReqUpload) => {
   }
   sendFile.append('token', info.token);
   return request.post('/api/drive/upload' + info.path, sendFile, {
-    onUploadProgress: (e) => console.log(e)
+    onUploadProgress: info.onProgress,
+    cancelToken: info.cancelToken.token
   });
 }
 

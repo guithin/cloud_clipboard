@@ -12,6 +12,7 @@ import {
 import Explorer from 'components/drive/Explorer';
 import ItemMenu from 'components/drive/ItemMenu';
 import UploadPopup from 'components/drive/UploadPopup';
+import Uploading from 'components/drive/UploadState';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   toolbar: {
@@ -29,6 +30,7 @@ const Main: React.FC = () => {
         <Sidebar />
         <ItemMenu />
         <UploadPopup />
+        <Uploading />
         <main>
           <div className={classes.toolbar} />
             <Switch>

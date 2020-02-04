@@ -31,7 +31,10 @@ const exComUpload: Epic<
     map(res => actions.uploadRequest.success({
       result: res.data,
       tagName: act.payload.tagName,
-      refresh: false
+      uplaodRatio: 1,
+      refresh: false,
+      cancelToken: act.payload.cancelToken,
+      filenames: act.payload.files.map(i => i.name)
     })),
     catchError(err => [actions.uploadRequest.failure()])
   ))

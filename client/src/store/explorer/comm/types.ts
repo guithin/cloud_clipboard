@@ -1,4 +1,5 @@
 import { ExplorerItem } from "../content/types";
+import { CancelTokenSource } from 'axios';
 
 // readdir
 export interface ReqReaddir {
@@ -21,7 +22,9 @@ export interface ReqUpload {
   path: string,
   token: string,
   files: File[],
-  tagName: string
+  tagName: string,
+  cancelToken: CancelTokenSource,
+  onProgress(e: ProgressEvent): void
 }
 
 export interface ResUpload {
@@ -29,8 +32,12 @@ export interface ResUpload {
   result?: {
     filepath: string,
   }
+  tagName: string,
+
+  filenames: string[],
+  uplaodRatio: number,
   refresh: boolean,
-  tagName: string
+  cancelToken: CancelTokenSource
 }
 
 // edit (rm, mkdir, mv, cp)
