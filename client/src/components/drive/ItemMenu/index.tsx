@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react';
 import { RootState } from 'store/types';
 import { useSelector, useDispatch } from 'react-redux';
-import { Popover, ClickAwayListener, Paper, MenuList, MenuItem } from '@material-ui/core';
+import { Popover, ClickAwayListener, Paper, MenuList } from '@material-ui/core';
 import actions from 'store/explorer/content/actions';
-import { ExplorerItem } from 'store/explorer/content/types';
-import { Link } from 'react-router-dom';
-import path from 'path';
-import { serverHost } from 'store/utils';
+import DownloadElement from './Elements/DownloadElement';
+import OpenDialog from './Elements/OpenDialogElemet';
+import DetailDialog from './Dialogs/DetailDialog';
+import DeleteDialog from './Dialogs/DeleteDialog';
 
 const selector = ({
   menuState,
@@ -27,28 +27,6 @@ const ItemMenu: React.FC = () => {
     dispatch(actions.menuClose());
   }, [dispatch]);
 
-  const downloadElement = useCallback((item: ExplorerItem) => {
-    return (
-      <Link
-        to={{
-          pathname: path.join(serverHost, '/api/drive/download', main.nowPath, item.name),
-          search: main.token ? '&token=' + main.token : ''
-        }}
-        target='_blank'
-        style={{
-          textDecoration: 'none',
-          color: '#000'
-        }}
-      >
-        <MenuItem
-          key='download'
-        >
-          다운로드
-        </MenuItem>
-      </Link>
-    )
-  }, [main]);
-
   const getMenuOpts = useCallback(() => {
     let ret = [] as JSX.Element[];
     const itemNames = Object.keys(sltState.lst);
@@ -56,18 +34,31 @@ const ItemMenu: React.FC = () => {
     const oneItem = sltState.lst[itemNames[0]];
     if (itemNames.length > 1) {
       // 공유, 이동, 다운로드, 삭제
+      ret.push(DownloadElement(sltState, main));
+      ret.push(OpenDialog(dispatch, 'delete', '삭제'));
     }
     else if (oneItem.name === '.' || oneItem.name === '..') {
       // 새폴더, 파일 업로드, 폴더 업로드
+      ret.push(OpenDialog(dispatch, 'mkdir', '새 폴더'));
     }
     else if (oneItem.isFile) {
       // 공유, 이름바꾸기, 이동, 세부정부, 복사, 다운로드, 삭제
+      ret.push(OpenDialog(dispatch, 'detail', '세부 정보'));
+      ret.push(OpenDialog(dispatch, 'mv', '이동'));
+      ret.push(OpenDialog(dispatch, 'rename', '이름 바꾸기'));
+      ret.push(DownloadElement(sltState, main));
+      ret.push(OpenDialog(dispatch, 'delete', '삭제'));
     }
     else {
-
+      // 공유, 이름바꾸기, 이동, 세부정부, 복사, 다운로드, 삭제
+      ret.push(OpenDialog(dispatch, 'detail', '세부 정보'));
+      ret.push(OpenDialog(dispatch, 'mv', '이동'));
+      ret.push(OpenDialog(dispatch, 'rename', '이름 바꾸기'));
+      ret.push(DownloadElement(sltState, main));
+      ret.push(OpenDialog(dispatch, 'delete', '삭제'));
     }
     return ret;
-  }, [sltState]);
+  }, [sltState, main, dispatch]);
 
   return (
     <div>
@@ -94,6 +85,8 @@ const ItemMenu: React.FC = () => {
           </ClickAwayListener>
         </Paper>
       </Popover>
+      <DetailDialog />
+      <DeleteDialog />
     </div>
   )
 }

@@ -48,6 +48,7 @@ export interface ResEdit {
     path: string,
     command: string,
   }
+  refresh: boolean,
   tagName: string,
 }
 

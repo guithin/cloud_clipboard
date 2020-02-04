@@ -1,5 +1,5 @@
 import { createReducer } from 'typesafe-actions';
-import { ExplorerStateMap, ExplorerState, MenuState, menuInitState, SltState, sltInit } from './types';
+import { ExplorerStateMap, ExplorerState, MenuState, menuInitState, SltState, sltInit, UGState } from './types';
 import comActions from 'store/explorer/comm/actions';
 import actions from './actions';
 
@@ -24,7 +24,7 @@ export const explorerCont = createReducer<ExplorerStateMap>({})
       [payload.tagName]: newState
     }
   })
-  .handleAction(comActions.readdirRequest.request, (state, { payload }) => {
+  .handleAction(comActions.readdirRequest.request, (state, { payload, type }) => {
     const newState: ExplorerState = {
       ...state[payload.tagName],
       status: 'loading',
@@ -37,13 +37,17 @@ export const explorerCont = createReducer<ExplorerStateMap>({})
       [payload.tagName]: newState
     };
   })
-  .handleAction(comActions.readdirRequest.success, (state, { payload }) => {
+  .handleAction(comActions.readdirRequest.success, (state, { payload, type }) => {
     if (!payload.result) return state;
     const newState: ExplorerState = {
       ...state[payload.tagName],
       status: 'success',
       rootPath: payload.result.rootPath,
-      items: payload.result.files,
+      items: payload.result.files.sort((f1, f2) => {
+        if (f1.isFile !== f2.isFile) return f1.isFile ? 1 : -1;
+        if (f1.name !== f2.name) return f1.name > f2.name ? 1 : -1;
+        return 0;
+      }),
     }
     return {
       ...state,
@@ -54,9 +58,16 @@ export const explorerCont = createReducer<ExplorerStateMap>({})
 export const menuState = createReducer<MenuState>(menuInitState)
   .handleAction(actions.menuOpen, (state, { payload }) => {
     return {
+      ...state,
       open: true,
       ...payload
     };
+  })
+  .handleAction(actions.menuDialog, (state, { payload }) => {
+    return {
+      ...state,
+      dialogState: payload
+    }
   })
   .handleAction(actions.menuClose, state => menuInitState)
 
@@ -113,4 +124,6 @@ export const sltState = createReducer<SltState>(sltInit)
       type: payload
     }
   })
+
+export const uploadPopup = createReducer<UGState>({})
   

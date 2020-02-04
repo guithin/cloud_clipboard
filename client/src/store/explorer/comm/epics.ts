@@ -4,7 +4,7 @@ import { Epic, combineEpics } from "redux-observable";
 import { filter, mergeMap, map, catchError } from "rxjs/operators";
 import actions from "./actions";
 import { from } from "rxjs";
-import { readdirApi, uploadItem } from "./api";
+import { readdirApi, uploadItem, editItemApi } from "./api";
 
 const exComEpic: Epic<
   RootAction,
@@ -37,6 +37,22 @@ const exComUpload: Epic<
   ))
 )
 
+const exComEdit: Epic<
+  RootAction,
+  ActionType<typeof actions.editRequest.success> | ActionType<typeof actions.editRequest.failure>,
+  RootState
+> = (act) => act.pipe(
+  filter(isActionOf(actions.editRequest.request)),
+  mergeMap(act => from(editItemApi(act.payload)).pipe(
+    map(res => actions.editRequest.success({
+      result: res.data,
+      tagName: act.payload.tagName,
+      refresh: false,
+    })),
+    catchError(err => [actions.editRequest.failure()])
+  ))
+)
+
 export default combineEpics(
-  exComEpic, exComUpload
+  exComEpic, exComUpload, exComEdit
 );

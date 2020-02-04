@@ -12,14 +12,16 @@ import ExplorerPath from './ExploterPath';
 import { useHistory } from 'react-router-dom';
 import contActions from 'store/explorer/content/actions';
 import commActions from 'store/explorer/comm/actions';
+import { nowFolder } from 'store/explorer/content/types';
 
 const selector = ({
-  explorerCom: { upload },
+  explorerCom: { upload, edit },
   explorerCont: { main },
   user: { username },
+  menuState,
   sltState,
 }: RootState) => ({
-  upload, main, username, sltState
+  upload, edit, main, username, sltState, menuState,
 });
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -40,7 +42,7 @@ const Explorer: React.FC = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const classes = useStyles();
-  const { upload, main, username, sltState } = useSelector(selector);
+  const { upload, edit, main, username, sltState, menuState } = useSelector(selector);
   const [tableSize, setTableSize] = useState({ width: 0, height: 0 });
 
   const checkTableSize = useCallback(() => {
@@ -55,11 +57,12 @@ const Explorer: React.FC = () => {
   }, [tableSize]);
 
   const handleClickOutside = useCallback((e) => {
+    if (menuState.open) return;
     if (cellsRef.current && !cellsRef.current.contains(e.target)) {
       if (e.type === 'contextmenu' && refContain(tableRef, e.target)) return;
       dispatch(contActions.itemClear());
     }
-  }, [dispatch]);
+  }, [dispatch, menuState]);
 
   const handleRClick = useCallback((e) => {
     e.preventDefault();
@@ -74,8 +77,20 @@ const Explorer: React.FC = () => {
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (cellsRef.current && !cellsRef.current.contains(e.target) && Object.keys(sltState.lst).length > 0) {
-      dispatch(contActions.itemClear());
+    if (tableRef.current && !tableRef.current.contains(e.target)) {
+      if (Object.keys(sltState.lst).length > 0) {
+        dispatch(contActions.itemClear());
+      }
+      return;
+    }
+    if (cellsRef.current && !cellsRef.current.contains(e.target)) {
+      if (Object.keys(sltState.lst).length !== 1 || !sltState.lst['.']) {
+        dispatch(contActions.itemSelect({
+          items: [nowFolder],
+          mode: 'click',
+          type: 'drag'
+        }));
+      }
     }
   }, [dispatch, sltState]);
 
@@ -101,7 +116,7 @@ const Explorer: React.FC = () => {
 
   useEffect(() => {
     const fetchFunc = functionMapper[(main && main.status) || 'begin'];
-    fetchFunc({ main, dispatch, username, history, upload });
+    fetchFunc({ main, dispatch, username, history, upload, edit });
     checkTableSize();
     window.addEventListener('resize', checkTableSize);
     document.addEventListener('mousedown', handleClickOutside);
@@ -118,6 +133,7 @@ const Explorer: React.FC = () => {
   }, [
     main,
     upload,
+    edit,
     username,
     history,
     dispatch,

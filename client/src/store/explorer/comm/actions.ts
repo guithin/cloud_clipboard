@@ -23,15 +23,16 @@ enum Actions {
   EDITEMS_REQUEST = 'COM_EDITEMS#REQUEST',
   EDITEMS_SUCCESS = 'COM_EDITEMS#SUCCESS',
   EDITEMS_FAILURE = 'COM_EDITEMS#FAILURE',
+
+  EDITEMS_REFRESH = 'COM_EDITEMS#REFRESH',
   // EDITEMS_CANCEL = 'COM_EDITEMS#CANCEL',
 }
 
 const readdirRequest = createAsyncAction(
   Actions.READDIR_REQUEST,
-  Actions.EDITEMS_SUCCESS,
-  Actions.EDITEMS_FAILURE,
+  Actions.READDIR_SUCCESS,
+  Actions.READDIR_FAILURE,
 )<ReqReaddir, ResReaddir, void>();
-
 
 const uploadRequest = createAsyncAction(
   Actions.UPLOADS_REQUEST,
@@ -48,10 +49,13 @@ const editRequest = createAsyncAction(
   Actions.EDITEMS_FAILURE,
 )<ReqEdit, ResEdit, void>();
 
+const editRefresh = createAction(Actions.EDITEMS_REFRESH)<string>();
+
 export default {
   readdirRequest,
   uploadRequest,
   uploadRefresh,
   editRequest,
+  editRefresh,
   Actions
 }

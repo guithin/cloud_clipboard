@@ -1,5 +1,5 @@
 import { request } from 'store/utils';
-import { ReqReaddir, ReqUpload } from './types';
+import { ReqReaddir, ReqUpload, ReqEdit } from './types';
 
 export const readdirApi = (info: ReqReaddir) => 
   request.post('/api/drive/readdir' + info.path, {
@@ -16,3 +16,6 @@ export const uploadItem = (info: ReqUpload) => {
     onUploadProgress: (e) => console.log(e)
   });
 }
+
+export const editItemApi = (info: ReqEdit) =>
+  request.post('/api/drive/edit' + info.path, info)

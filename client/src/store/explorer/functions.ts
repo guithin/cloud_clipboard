@@ -1,12 +1,12 @@
 import path from 'path';
-import { serverHost, hrefFunc } from 'store/utils';
+import { hrefFunc } from 'store/utils';
 import { ExplorerState } from './content/types';
 import { Dispatch } from 'react';
 import H from 'history';
 import contActions from './content/actions';
 import commActions from './comm/actions';
 import layoutActions from 'store/layout/actions';
-import { ResUploadMap } from './comm/types';
+import { ResUploadMap, ResEditMap } from './comm/types';
 
 // util functions
 export const getDateString = (date: string): string => {
@@ -41,7 +41,8 @@ export type StateFuncParam = {
   dispatch: Dispatch<any>,
   username: string,
   history: H.History<any>,
-  upload: ResUploadMap
+  upload: ResUploadMap,
+  edit: ResEditMap,
 }
 
 const beginFunc = ({ dispatch }: StateFuncParam) => {
@@ -61,7 +62,7 @@ const beginFunc = ({ dispatch }: StateFuncParam) => {
   }))
 }
 
-const doneFunc = ({ main, dispatch, upload }: StateFuncParam) => {
+const doneFunc = ({ main, dispatch, upload, edit }: StateFuncParam) => {
   const locatePath = convertPath(window.location.pathname);
   if (path.relative(main.nowPath, locatePath)) {
     dispatch(commActions.readdirRequest.request({
@@ -75,11 +76,23 @@ const doneFunc = ({ main, dispatch, upload }: StateFuncParam) => {
   // upload refresh
   let refresh = false;
   for (let i in upload) {
-    if (upload[i].result && upload[i].refresh === false) {
-      if (upload[i].result?.filepath === main.nowPath) {
+    const nowUpload = upload[i];
+    if (nowUpload.result && nowUpload.refresh === false) {
+      if (nowUpload.result.filepath === main.nowPath) {
         refresh = true;
       }
       dispatch(commActions.uploadRefresh(i));
+    }
+  }
+  
+  // edit refresh
+  for (let i in edit) {
+    const nowEdit = edit[i];
+    if (nowEdit.result && nowEdit.refresh === false) {
+      if (nowEdit.result.path === main.nowPath) {
+        refresh = true;
+      }
+      dispatch(commActions.editRefresh(i));
     }
   }
   if (refresh) {

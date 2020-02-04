@@ -3,7 +3,7 @@ import { TableRow, TableCell, Grid, Typography, Tooltip } from '@material-ui/cor
 import { InsertDriveFile, Folder } from '@material-ui/icons';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
-import { ExplorerItem, SltOpts } from 'store/explorer/content/types';
+import { ExplorerItem, SltOpts, nowFolder } from 'store/explorer/content/types';
 import { useDispatch, useSelector } from 'react-redux';
 import actions from 'store/explorer/content/actions';
 import { RootState } from 'store/types';
@@ -69,7 +69,7 @@ const ItemFC: React.FC<{
 
   const handleDoubleClick = useCallback((e) => {
     if (item.isFile) {
-      hrefFunc(path.join(serverHost, '/api/drive/download', main.nowPath, item.name));
+      hrefFunc(serverHost + path.join('/api/drive/download', main.nowPath, item.name));
     }
     else {
       history.push({
@@ -77,7 +77,7 @@ const ItemFC: React.FC<{
         search: main.token ? '&token=' + main.token : ''
       });
     }
-  }, [item, history]);
+  }, [item, history, main]);
 
   const handleClick = useCallback((e) => {
     const items = [] as ExplorerItem[];
@@ -106,25 +106,27 @@ const ItemFC: React.FC<{
     }));
   }, [dispatch, item, main, sltState]);
 
+  const itemDragSlt = useCallback((opt: ExplorerItem) => {
+    const nowItem = opt;
+    if (Object.keys(sltState.lst).length !== 1 || !sltState.lst[nowItem.name]) {
+      dispatch(actions.itemSelect({
+        mode: 'click',
+        type: 'drag',
+        items: [nowItem]
+      }))
+    }
+  }, [dispatch, sltState]);
+ 
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (refContain(itemRef, e.target)) {
-      if (item.isFile) {
-        if (Object.keys(sltState.lst).length > 0) {
-          dispatch(actions.itemClear());
-        }
-        return;
-      }
-      if (Object.keys(sltState.lst).length !== 1 || !sltState.lst[item.name]) {
-        dispatch(actions.itemSelect({
-          mode: 'click',
-          type: 'drag',
-          items: [item],
-        }));
-      }
+    if (!item.isFile && refContain(itemRef, e.target)) {
+      itemDragSlt(item);
     }
-  }, [dispatch, item, sltState]);
+    else if (refContain(allRef, e.target)) {
+      itemDragSlt(nowFolder);
+    }
+  }, [item, itemDragSlt]);
 
   const colorState = useCallback((): string => {
     return sltState.lst[item.name] ? '#cce8ff' : '#fff'

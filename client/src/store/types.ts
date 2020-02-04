@@ -2,7 +2,7 @@ import { ActionType } from 'typesafe-actions';
 import { User } from './user/types';
 import { LayoutState } from './layout/types';
 import { ComState } from './explorer/comm/types';
-import { ExplorerStateMap, MenuState, SltState } from './explorer/content/types';
+import { ExplorerStateMap, MenuState, SltState, UGState } from './explorer/content/types';
 
 import userAction from './user/actions';
 import layoutAction from './layout/actions';
@@ -15,7 +15,8 @@ export interface RootState {
   explorerCom: ComState,
   explorerCont: ExplorerStateMap,
   menuState: MenuState,
-  sltState: SltState
+  sltState: SltState,
+  uploadPopup: UGState
 }
 
 export type RootAction = 

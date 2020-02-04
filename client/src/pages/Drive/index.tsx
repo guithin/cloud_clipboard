@@ -10,6 +10,8 @@ import {
   Route
 } from 'react-router-dom';
 import Explorer from 'components/drive/Explorer';
+import ItemMenu from 'components/drive/ItemMenu';
+import UploadPopup from 'components/drive/UploadPopup';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   toolbar: {
@@ -25,6 +27,8 @@ const Main: React.FC = () => {
       <Router>
         <Header />
         <Sidebar />
+        <ItemMenu />
+        <UploadPopup />
         <main>
           <div className={classes.toolbar} />
             <Switch>

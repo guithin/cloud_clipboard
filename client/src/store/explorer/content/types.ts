@@ -79,18 +79,20 @@ export interface SltOpts {
   items: ExplorerItem[],
   mode: 'click' | 'ctrl' | 'shift',
   type?: 'none' | 'drag',
-  click?: ExplorerItem,
 }
 
 // explorer menu state
+export type DialogState = 'none' | 'delete' | 'mkdir' | 'rename' | 'mv' | 'detail';
 export interface MenuState {
   open: boolean,
   posX: number,
-  posY: number
+  posY: number,
+  dialogState: DialogState
 }
 
 export const menuInitState: MenuState = {
   open: false,
   posX: 0,
-  posY: 0
+  posY: 0,
+  dialogState: 'none'
 }
