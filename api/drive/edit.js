@@ -37,7 +37,6 @@ const commandRm = (req, res) => {
   return res.send({
     path: req.path,
     command: '',
-    timeTag: req.body.timeTag
   })
 }
 
@@ -55,7 +54,6 @@ const commandMkdir = (req, res) => {
   return res.send({
     path: req.path,
     command: '',
-    timeTag: req.body.timeTag
   })
 }
 
@@ -77,7 +75,6 @@ const commandMv = async (req, res) => {
   return res.send({
     path: req.path,
     command: '',
-    timeTag: req.body.timeTag
   })
 }
 
