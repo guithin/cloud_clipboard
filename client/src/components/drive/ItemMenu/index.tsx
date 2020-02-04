@@ -7,6 +7,7 @@ import DownloadElement from './Elements/DownloadElement';
 import OpenDialog from './Elements/OpenDialogElemet';
 import DetailDialog from './Dialogs/DetailDialog';
 import DeleteDialog from './Dialogs/DeleteDialog';
+import MakdirDialog from './Dialogs/MakdirDialog';
 
 const selector = ({
   menuState,
@@ -24,20 +25,20 @@ const ItemMenu: React.FC = () => {
   const dispatch = useDispatch();
 
   const handleClose = useCallback(() => {
+    if (menuState.dialogState !== 'none') return;
     dispatch(actions.menuClose());
-  }, [dispatch]);
+  }, [dispatch, menuState]);
 
   const getMenuOpts = useCallback(() => {
     let ret = [] as JSX.Element[];
     const itemNames = Object.keys(sltState.lst);
-    if (itemNames.length <= 0) return ret;
     const oneItem = sltState.lst[itemNames[0]];
     if (itemNames.length > 1) {
       // 공유, 이동, 다운로드, 삭제
       ret.push(DownloadElement(sltState, main));
       ret.push(OpenDialog(dispatch, 'delete', '삭제'));
     }
-    else if (oneItem.name === '.' || oneItem.name === '..') {
+    else if (itemNames.length === 0 || oneItem.name === '.' || oneItem.name === '..') {
       // 새폴더, 파일 업로드, 폴더 업로드
       ret.push(OpenDialog(dispatch, 'mkdir', '새 폴더'));
     }
@@ -87,6 +88,7 @@ const ItemMenu: React.FC = () => {
       </Popover>
       <DetailDialog />
       <DeleteDialog />
+      <MakdirDialog />
     </div>
   )
 }

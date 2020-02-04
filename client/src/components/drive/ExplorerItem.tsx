@@ -72,9 +72,13 @@ const ItemFC: React.FC<{
       hrefFunc(serverHost + path.join('/api/drive/download', main.nowPath, item.name));
     }
     else {
+      const searchParamObj = new URLSearchParams();
+      if (main.token) {
+        searchParamObj.set('token', main.token);
+      }
       history.push({
-        pathname: path.join('drive', main.nowPath, item.name),
-        search: main.token ? '&token=' + main.token : ''
+        pathname: path.join('/drive', main.nowPath, item.name),
+        search: searchParamObj.toString()
       });
     }
   }, [item, history, main]);

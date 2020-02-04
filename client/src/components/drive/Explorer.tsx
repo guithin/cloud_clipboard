@@ -110,7 +110,8 @@ const Explorer: React.FC = () => {
         files,
         token: (main && main.token) || '',
         tagName: crypto.createHash('sha256').update(_path +new Date().getTime().toString()).digest('base64')
-      }))
+      }));
+      dispatch(contActions.itemClear());
     }
   }, [dispatch, sltState, main]);
 
