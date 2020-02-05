@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import path from 'path';
-import { List, Theme, ListItem, Typography} from '@material-ui/core';
+import { List, Theme, ListItem, Typography, CircularProgress} from '@material-ui/core';
 import { Link } from 'react-router-dom';
 import { RootState } from 'store/types';
 import { useSelector } from 'react-redux';
@@ -68,6 +68,7 @@ const ExplorerPath: React.FC = () => {
           </ListItem>
         </Link>
       ))}
+      {main.status !== 'success' && (<CircularProgress size={30} style={{ marginLeft: '15px' }}/>)}
     </List>
   )
 }

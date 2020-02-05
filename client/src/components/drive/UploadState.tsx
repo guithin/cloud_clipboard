@@ -43,13 +43,18 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     '&:last-child': {
       padding: '0px'
     }
+  },
+  uploadListText: {
+    fontSize: '15px',
+    marginLeft: '15px'
   }
 }))
 
 const selector = ({
+  explorerCont: { main },
   explorerCom: { upload }
 }: RootState) => ({
-  upload
+  main, upload
 });
 
 const Uploading: React.FC = () => {
@@ -57,8 +62,7 @@ const Uploading: React.FC = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [state, setState] = useState(false);
-  const { upload } = useSelector(selector);
-
+  const { main, upload } = useSelector(selector);
 
   const handleClose = useCallback(() => {
     if (!upload) return;
@@ -66,7 +70,7 @@ const Uploading: React.FC = () => {
     for (let i in upload) {
       if (!upload[i].result) {
         confirm = true;
-        break
+        break;
       }
     }
     if (confirm) {
@@ -86,20 +90,39 @@ const Uploading: React.FC = () => {
     setState(false);
   }, []);
 
-  const getCont = useCallback(() => {
-    if (!upload) return [];
-    let lst: ResUpload[] = [];
-    for (let i in upload) {
-      lst.push(upload[i])
-    }
-    return lst;
-  }, [upload]);
-
   const getText = useCallback((item: ResUpload): string => {
     let ret = item.filenames[0];
     if (item.filenames.length > 1) ret += `외 ${item.filenames.length - 1}개 파일`;
     return ret;
-  }, [])
+  }, []);
+
+  const getContent = useCallback(() => {
+    if (!upload) return [];
+    let lst = [] as { cont: ResUpload, text: string, icon: JSX.Element }[];
+    for (let i in upload) {
+      const cont = upload[i];
+      const text = getText(cont);
+      let icon = <CheckCircle style={{ color: '#4CAF50' }} />;
+      if (cont.error) {
+        icon = <Error />
+      }
+      else if (!cont.result) {
+        icon = <CircularProgress variant='static' value={cont.uplaodRatio * 100} size={24} />
+      }
+      lst.push({ cont, text, icon });
+    }
+    return lst;
+  }, [upload, getText]);
+
+  const getLinkPath = useCallback((arg) => {
+    const pathname = path.join('/drive', arg);
+    const searchParamObj = new URLSearchParams();
+    if (main.token) searchParamObj.set('token', main.token);
+    return {
+      pathname,
+      search: searchParamObj.toString()
+    }
+  }, [main]);
 
   return (
     <div>
@@ -111,7 +134,7 @@ const Uploading: React.FC = () => {
         <Card className={classes.card}>
           <CardHeader
             className={classes.cardH}
-            title={<Typography style={{ fontSize: '15px', marginLeft: '15px' }}>업로드 목록</Typography>}
+            title={<Typography className={classes.uploadListText}>업로드 목록</Typography>}
             action={
               <IconButton key='close' aria-label='close' color='inherit' onClick={handleClose}>
                 <Close />
@@ -120,23 +143,18 @@ const Uploading: React.FC = () => {
           />
           <CardContent className={classes.cardCont}>
             <List>
-              {getCont().map(item => (
+              {getContent().map(item => (
                 <Link
-                  to={{
-                    pathname: path.join('/drive', (item.result && item.result.filepath) || ''),
-                    search: window.location.search
-                  }}
+                  to={getLinkPath((item.cont.result && item.cont.result.filepath) || main.rootPath || '')}
                   style={{ textDecoration: 'none' }}
-                  key={item.tagName}
+                  key={item.cont.tagName}
                 >
-                  <ListItem button key={item.tagName}>
+                  <ListItem button key={item.cont.tagName}>
                     <ListItemIcon>
-                      {(!item.result) ? <CircularProgress variant='static' value={item.uplaodRatio * 100} size={24}/> :
-                       (item.error) ? <Error style={{ color: '#F44336' }} /> :
-                       <CheckCircle style={{ color: '#4CAF50' }} />}
+                      {item.icon}
                     </ListItemIcon>
                     <Typography noWrap={true} color='textPrimary' style={{ fontSize: '15px' }}>
-                      {getText(item)}
+                      {item.text}
                     </Typography>
                   </ListItem>
                 </Link>
@@ -148,14 +166,12 @@ const Uploading: React.FC = () => {
       <Dialog
         open={state}
         onClose={handleDialogClose}
-        aria-labelledby='alert-dialog-title'
-        aria-describedby='alert-dialog-description'
       >
-        <DialogTitle id='alert-dialog-title'>
+        <DialogTitle>
           업로드를 취소하시겠습니까?
         </DialogTitle>
         <DialogContent>
-          <DialogContentText id='alert-dialog-description'>
+          <DialogContentText>
             업로드가 완료되지 않았습니다. 업로드를 취소하시겠습니까?
           </DialogContentText>
         </DialogContent>

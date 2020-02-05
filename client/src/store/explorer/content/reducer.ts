@@ -1,5 +1,13 @@
 import { createReducer } from 'typesafe-actions';
-import { ExplorerStateMap, ExplorerState, MenuState, menuInitState, SltState, sltInit, UGState } from './types';
+import {
+  ExplorerStateMap,
+  ExplorerState,
+  MenuState,
+  SltState,
+  UGState,
+  menuInitState,
+  sltInit
+} from './types';
 import comActions from 'store/explorer/comm/actions';
 import actions from './actions';
 
@@ -30,7 +38,6 @@ export const explorerCont = createReducer<ExplorerStateMap>({})
       status: 'loading',
       rootPath: '',
       nowPath: payload.path,
-      items: [],
     }
     return {
       ...state,
@@ -58,8 +65,8 @@ export const explorerCont = createReducer<ExplorerStateMap>({})
 export const menuState = createReducer<MenuState>(menuInitState)
   .handleAction(actions.menuOpen, (state, { payload }) => {
     return {
-      ...state,
       open: true,
+      dialogState: 'none',
       ...payload
     };
   })

@@ -8,6 +8,7 @@ import OpenDialog from './Elements/OpenDialogElemet';
 import DetailDialog from './Dialogs/DetailDialog';
 import DeleteDialog from './Dialogs/DeleteDialog';
 import MakdirDialog from './Dialogs/MakdirDialog';
+import RenameDialog from './Dialogs/RenameDialog';
 
 const selector = ({
   menuState,
@@ -64,7 +65,7 @@ const ItemMenu: React.FC = () => {
   return (
     <div>
       <Popover
-        open={menuState.open}
+        open={menuState.open && menuState.dialogState === 'none'}
         anchorReference='anchorPosition'
         anchorPosition={{
           top: menuState.posY || 0,
@@ -89,6 +90,7 @@ const ItemMenu: React.FC = () => {
       <DetailDialog />
       <DeleteDialog />
       <MakdirDialog />
+      <RenameDialog />
     </div>
   )
 }

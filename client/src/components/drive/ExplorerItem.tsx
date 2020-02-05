@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { TableRow, TableCell, Grid, Typography, Tooltip } from '@material-ui/core';
-import { InsertDriveFile, Folder } from '@material-ui/icons';
+import { InsertDriveFile, Folder, Image, Description } from '@material-ui/icons';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import { ExplorerItem, SltOpts, nowFolder } from 'store/explorer/content/types';
@@ -140,6 +140,22 @@ const ItemFC: React.FC<{
     return sltState.lastItem && sltState.lastItem.name === item.name;
   }, [sltState, item]);
 
+  const getIcon = useCallback(() => {
+    if (!item.isFile) return <Folder />;
+    const lst = item.name.split('.');
+    const ext = lst.length > 0 ? lst[lst.length - 1] : '';
+    if (ext) {
+      const imgexts = ['gif', 'jpg', 'png', 'bmp'];
+      if (imgexts.includes(ext.toLowerCase())) {
+        return <Image />;
+      }
+      if (ext === 'txt') {
+        return <Description />;
+      }
+    }
+    return <InsertDriveFile />;
+  }, [item])
+
   useEffect(() => {
     document.addEventListener('dragover', handleDragOver);
     return () => {
@@ -161,7 +177,7 @@ const ItemFC: React.FC<{
       <TableCell ref={itemRef}>
         <Grid container alignItems='center'>
           <Grid item className={classes.iconMargin}>
-            {item.isFile ? (<InsertDriveFile />) : (<Folder />)}
+            {getIcon()}
           </Grid>
           <Grid item>
             <Tooltip title={item.name} placement='bottom-start' enterDelay={500}>

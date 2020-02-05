@@ -22,7 +22,7 @@ const DeleteDialog: React.FC = () => {
   const dispatch = useDispatch();
 
   const handleClose = useCallback(() => {
-    dispatch(contActions.menuDialog('none'));
+    dispatch(contActions.menuClose());
   }, [dispatch]);
   
   const handleDelete = useCallback(() => {
@@ -35,7 +35,7 @@ const DeleteDialog: React.FC = () => {
       token: main.token,
       tagName: crypto.createHash('sha256').update(main.nowPath + new Date().getTime().toString()).digest('base64')
     }));
-    dispatch(contActions.menuDialog('none'));
+    dispatch(contActions.menuClose());
   }, [sltState, dispatch, main]);
 
   return (

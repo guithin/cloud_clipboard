@@ -1,62 +1,72 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Dialog, DialogTitle, TextField, DialogContent, Button, DialogActions } from '@material-ui/core';
 import { RootState } from 'store/types';
 import { useSelector, useDispatch } from 'react-redux';
 import contActions from 'store/explorer/content/actions';
 import commActions from 'store/explorer/comm/actions';
 import crypto from 'crypto';
+import path from 'path';
 
 const selector = ({
   explorerCont: { main },
-  menuState
+  menuState,
+  sltState
 }: RootState) => ({
-  main, menuState
+  main, menuState, sltState
 });
 
-const MakdirDialog: React.FC = () => {
+const RenameDialog: React.FC = () => {
 
-  const { main, menuState } = useSelector(selector);
+  const { main, menuState, sltState } = useSelector(selector);
   const dispatch = useDispatch();
-  const [dirName, setDirName] = useState<string>('');
+  const [rename, setRename] = useState<string>('');
 
   const handleClose = useCallback(() => {
     dispatch(contActions.menuClose());
-    setDirName('');
+    setRename('');
   }, [dispatch]);
 
-  const handleMkdir = useCallback(() => {
+  const handleRename = useCallback(() => {
     dispatch(commActions.editRequest.request({
-      type: 'mkdir',
+      type: 'mv',
       path: main.nowPath,
-      command: dirName,
+      command: JSON.stringify({
+        item: Object.keys(sltState.lst)[0],
+        movePath: path.join(main.nowPath, rename)
+      }),
       token: main.token,
       tagName: crypto.createHash('sha256').update(main.nowPath + new Date().getTime().toString()).digest('base64')
     }));
     handleClose();
-  }, [dispatch, main, dirName, handleClose]);
+  }, [dispatch, main, rename, handleClose, sltState]);
+
+  useEffect(() => {
+    if (menuState.dialogState === 'rename') {
+      setRename(Object.keys(sltState.lst)[0])
+    }
+  }, [sltState, menuState]);
 
   return (
     <Dialog
-      disableBackdropClick
-      open={menuState.dialogState === 'mkdir'}
+      open={menuState.dialogState === 'rename'}
       onClose={handleClose}
     >
-      <DialogTitle>새 폴더</DialogTitle>
+      <DialogTitle>이름 바꾸기</DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
           id='name'
           label='폴더 이름'
-          value={dirName}
-          onChange={({ target: { value }}) => setDirName(value)}
+          value={rename}
+          onChange={({ target: { value }}) => setRename(value)}
         />
       </DialogContent>
       <DialogActions>
         <Button 
-          onClick={handleMkdir}
+          onClick={handleRename}
           color='primary'
         >
-          만들기
+          바꾸기
         </Button>
         <Button 
           onClick={handleClose}
@@ -69,4 +79,4 @@ const MakdirDialog: React.FC = () => {
   )
 }
 
-export default MakdirDialog;
+export default RenameDialog;

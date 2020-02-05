@@ -4,21 +4,34 @@ import {
 
 import {
   initialState,
-  initialAlertState
+  initialAlertState,
+  initConfirmState
 } from './types';
 import layoutActions from './actions';
 
 const alertReducer = createReducer(initialState)
-  .handleAction(layoutActions.openAlert, (state, action) => {
+  .handleAction(layoutActions.openAlert, (state, { payload }) => {
     return {
       ...state,
-      alert: action.payload
+      alert: payload
     }
   })
-  .handleAction(layoutActions.closeAlert, (state) => {
+  .handleAction(layoutActions.closeAlert, state => {
     return {
       ...state,
       alert: initialAlertState
+    }
+  })
+  .handleAction(layoutActions.openConfirm, (state, { payload }) => {
+    return {
+      ...state,
+      confirm: payload
+    }
+  })
+  .handleAction(layoutActions.closeConfirm, state => {
+    return {
+      ...state,
+      confirm: initConfirmState
     }
   })
 

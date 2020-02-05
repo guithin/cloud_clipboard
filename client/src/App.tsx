@@ -15,6 +15,7 @@ import Test from 'pages/Root/test';
 import DriveMain from 'pages/Drive'
 import ClipboardFC from 'pages/Clipboard';
 import AlertFC from 'components/Alert';
+import Confirm from 'components/Confirm';
 
 const selector = ({
   user: {
@@ -66,6 +67,7 @@ const App: React.FC = () => {
           )}
         </Router>
         <AlertFC />
+        <Confirm />
       </div>
     </>
   );

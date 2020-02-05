@@ -10,6 +10,7 @@ import { RootAction, RootState } from './types';
 import rootReducer from './reducer';
 import rootEpic from './epics';
 import { setToken, assignAuther } from './utils';
+import actions from './layout/actions';
 
 const persistConfig = {
   key: 'root',
@@ -39,17 +40,11 @@ export const store = createStore(
 epicMiddleware.run(rootEpic);
 export const persistor = persistStore(store, undefined, persistHandler(store));
 
-// export default (): [Store<RootState>, Persistor] => {
-//   let middlewares: any[] = [epicMiddleware];
-
-//   middlewares.push(loggerMiddleware);
-
-//   const store = createStore(
-//     pReducer,
-//     composeEnhancers(applyMiddleware(...middlewares)),
-//   );
-
-//   epicMiddleware.run(rootEpic);
-
-//   return [store, persistStore(store, undefined, persistHandler(store))];
-// }
+export const ConfirmCustom = ({ name, description }: { name: string, description: string }) => {
+  return new Promise((resolve, reject) => {
+    store.dispatch(actions.openConfirm({
+      open: true,
+      name, description, promise: { resolve, reject }
+    }));
+  });
+}

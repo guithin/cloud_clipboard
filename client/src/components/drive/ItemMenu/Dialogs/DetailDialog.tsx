@@ -70,7 +70,7 @@ const DetailDialog: React.FC = () => {
   const dispatch = useDispatch();
 
   const handleClose = useCallback(() => {
-    dispatch(actions.menuDialog('none'));
+    dispatch(actions.menuClose());
   }, [dispatch]);
 
   const getItem = useCallback(() => {

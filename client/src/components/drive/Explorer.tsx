@@ -14,6 +14,7 @@ import contActions from 'store/explorer/content/actions';
 import commActions from 'store/explorer/comm/actions';
 import { nowFolder } from 'store/explorer/content/types';
 import Axios from 'axios';
+import { ConfirmCustom } from 'store';
 
 const selector = ({
   explorerCom: { upload, edit },
@@ -95,18 +96,8 @@ const Explorer: React.FC = () => {
     }
   }, [dispatch, sltState]);
 
-  const handleDragDrop = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (refContain(tableRef, e.target)) {
-      let _path = main && main.nowPath;
-      if (sltState.type === 'drag') {
-        const temp = sltState.lst[Object.keys(sltState.lst)[0]].name;
-        _path = path.join(_path, temp);
-      }
-      let files: File[] = [];
-      for (let i of e.dataTransfer.files) files.push(i);
-      const tagName = crypto.createHash('sha256').update(_path +new Date().getTime().toString()).digest('base64');
+  const sendFile = useCallback((_path: string, files: File[]) => {
+    const tagName = crypto.createHash('sha256').update(_path +new Date().getTime().toString()).digest('base64');
       dispatch(commActions.uploadRequest.request({
         path: _path,
         files,
@@ -121,9 +112,41 @@ const Explorer: React.FC = () => {
           }))
         }
       }));
+  }, [dispatch, main]);
+
+  const handleDragDrop = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (refContain(tableRef, e.target)) {
+      let _path = main && main.nowPath;
+      if (sltState.type === 'drag') {
+        const temp = sltState.lst[Object.keys(sltState.lst)[0]].name;
+        _path = path.join(_path, temp);
+      }
+      let files: File[] = [];
+      let duplicated = false;
+      for (let i of e.dataTransfer.files) {
+        for (let j of main.items) {
+          if (j.name === i.name) {
+            duplicated = true;
+          }
+        }
+        files.push(i);
+      }
       dispatch(contActions.itemClear());
+      if (duplicated) {
+        ConfirmCustom({
+          name: 'Dublicate Name',
+          description: '중복된 이름의 파일이 존재합니다.\n 업로드 하시겠습니까?'
+        }).then(() => {
+          sendFile(_path, files);
+        }).catch(() => {});
+      }
+      else {
+        sendFile(_path, files);
+      }
     }
-  }, [dispatch, sltState, main]);
+  }, [dispatch, sltState, main, sendFile]);
 
   useEffect(() => {
     const fetchFunc = functionMapper[(main && main.status) || 'begin'];
@@ -157,7 +180,7 @@ const Explorer: React.FC = () => {
 
   return (
     <>
-      {!main || main.status !== 'success' || !main.nowPath ? (
+      {!main || !main.nowPath ? (
         <Loading />
       ) :  (
         <div className={classes.root}>
