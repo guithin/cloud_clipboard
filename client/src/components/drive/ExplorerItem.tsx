@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { TableRow, TableCell, Grid, Typography, Tooltip } from '@material-ui/core';
-import { InsertDriveFile, Folder, Image, Description } from '@material-ui/icons';
+import { InsertDriveFile, Folder, Image, Description, PictureAsPdf } from '@material-ui/icons';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { useHistory } from 'react-router-dom';
 import { ExplorerItem, SltOpts, nowFolder } from 'store/explorer/content/types';
@@ -143,14 +143,17 @@ const ItemFC: React.FC<{
   const getIcon = useCallback(() => {
     if (!item.isFile) return <Folder />;
     const lst = item.name.split('.');
-    const ext = lst.length > 0 ? lst[lst.length - 1] : '';
+    const ext = (lst.length > 0 ? lst[lst.length - 1] : '').toLocaleLowerCase();
     if (ext) {
       const imgexts = ['gif', 'jpg', 'png', 'bmp'];
-      if (imgexts.includes(ext.toLowerCase())) {
+      if (imgexts.includes(ext)) {
         return <Image />;
       }
       if (ext === 'txt') {
         return <Description />;
+      }
+      if (ext === 'pdf') {
+        return <PictureAsPdf />
       }
     }
     return <InsertDriveFile />;
